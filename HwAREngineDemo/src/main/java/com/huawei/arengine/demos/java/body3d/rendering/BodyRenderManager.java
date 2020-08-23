@@ -226,6 +226,7 @@ public class BodyRenderManager implements GLSurfaceView.Renderer {
 
                 // Update the body recognition information to be displayed on the screen.
                 StringBuilder sb = new StringBuilder();
+
                 updateMessageData(sb, body);
 
                 // Display the updated body information on the screen.
@@ -253,6 +254,8 @@ public class BodyRenderManager implements GLSurfaceView.Renderer {
         }
 
         curDirectionMap = SkeletonData.getDirectionMap(body);
+
+        // TODO：测试用（放大相邻帧的旋转量）
         try {
             Thread.sleep(300);
         } catch (InterruptedException e) {

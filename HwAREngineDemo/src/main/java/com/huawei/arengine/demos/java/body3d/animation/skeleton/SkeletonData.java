@@ -71,10 +71,12 @@ public class SkeletonData {
 
     private static void updatePositionMap(ARBody body) {
         float[] data = body.getSkeletonPoint3D();
+        int[] isExists = body.getSkeletonPointIsExist3D();
         for (int i = 0; i < SKELETON_SIZE; i++) {
-            positionMap.put(i, new Vector3(data[3 * i], data[3 * i + 1], data[3 * i + 2]));
+            if (isExists[i] == 1) {
+                positionMap.put(i, new Vector3(data[3 * i], data[3 * i + 1], data[3 * i + 2]));
+            }
         }
-        Log.e(TAG, "updatePositionMap: " + positionMap.get(0));
     }
 
     public static Map<Integer, Vector3> getPositionMap(ARBody body) {

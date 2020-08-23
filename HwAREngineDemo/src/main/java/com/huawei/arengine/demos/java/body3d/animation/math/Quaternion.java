@@ -32,4 +32,6 @@ public class Quaternion {
     public String toString() {
         return "w: " + w + " x: " + x + " y: " + y + " z: " + z;
     }
+
+    // TODO: 四元数转欧拉角函数，方便观察验证
 }
