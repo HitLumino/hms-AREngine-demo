@@ -27,6 +27,9 @@ import com.huawei.arengine.demos.common.ArDemoRuntimeException;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
 import com.huawei.arengine.demos.common.TextDisplay;
 import com.huawei.arengine.demos.common.TextureDisplay;
+import com.huawei.arengine.demos.java.body3d.animation.math.Quaternion;
+import com.huawei.arengine.demos.java.body3d.animation.math.Vector3;
+import com.huawei.arengine.demos.java.body3d.animation.skeleton.SkeletonData;
 import com.huawei.hiar.ARBody;
 import com.huawei.hiar.ARCamera;
 import com.huawei.hiar.ARFrame;
@@ -35,6 +38,8 @@ import com.huawei.hiar.ARTrackable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -76,9 +81,17 @@ public class BodyRenderManager implements GLSurfaceView.Renderer {
 
     private DisplayRotationManager mDisplayRotationManager;
 
+    private Map<String, Vector3> lastDirectionMap = new HashMap<>();
+
+    private Map<String, Vector3> curDirectionMap = new HashMap<>();
+
+
+    private boolean initialize = false;
+
+
     /**
      * The constructor passes activity.
-     * This method will be called when {@link Activity#onCreate}.
+     *
      *
      * @param activity Activity
      */
@@ -223,9 +236,6 @@ public class BodyRenderManager implements GLSurfaceView.Renderer {
             }
         } catch (ArDemoRuntimeException e) {
             Log.e(TAG, "Exception on the ArDemoRuntimeException!");
-        } catch (Throwable t) {
-            // This prevents the app from crashing due to unhandled exceptions.
-            Log.e(TAG, "Exception on the OpenGL thread");
         }
     }
 
@@ -236,10 +246,47 @@ public class BodyRenderManager implements GLSurfaceView.Renderer {
      * @param body ARBody
      */
     private void updateMessageData(StringBuilder sb, ARBody body) {
+
+        if (!initialize) {
+            initializeMap(body);
+            return;
+        }
+
+        curDirectionMap = SkeletonData.getDirectionMap(body);
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        SkeletonData.updateQuaternionMap(lastDirectionMap, curDirectionMap);
+
+        lastDirectionMap.putAll(curDirectionMap);
+
         float fpsResult = doFpsCalculate();
+        sb.append(System.lineSeparator());
+        sb.append(System.lineSeparator());
+        sb.append(System.lineSeparator());
         sb.append("FPS=").append(fpsResult).append(System.lineSeparator());
-        int bodyAction = body.getBodyAction();
-        sb.append("bodyAction=").append(bodyAction).append(System.lineSeparator());
+        Map<Integer, Vector3> positionMap = SkeletonData.getPositionMap(body);
+        for (int i = 0; i < body.getBodySkeletonType().length; i++) {
+            sb.append(body.getBodySkeletonType()[i].toString()).append(":  ").append(positionMap.get(i).toString()).append(System.lineSeparator());
+
+        }
+
+        sb.append(System.lineSeparator());
+        sb.append(System.lineSeparator());
+        sb.append(System.lineSeparator());
+
+        Map<String, Quaternion> quaternionMap = SkeletonData.getQuaternionMap();
+        for (String key : curDirectionMap.keySet()) {
+            sb.append(key).append(": ").append(quaternionMap.get(key).toString()).append(System.lineSeparator());
+        }
+    }
+
+    void initializeMap (ARBody body) {
+        lastDirectionMap.putAll(SkeletonData.getDirectionMap(body));
+        initialize = true;
     }
 
     private float doFpsCalculate() {
